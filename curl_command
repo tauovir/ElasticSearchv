@@ -1,0 +1,135 @@
+=============================Elastic search terminal command========================
+Download file:
+sudo wget http://media.sundog-soft.com/es7/shakespeare_7.0.json -P /home/nyalazone/Documents/test1/
+
+==============make mapping using json file:
+curl -H 'Content-Type: application/json' -XPUT 127.0.0.1:9200/shakespeare
+--data-binary @/home/nyalazone/Documents/test1/shakes-mapping.json
+
+==========Load json file data=====:
+
+curl -H 'Content-Type: application/json' -XPOST '127.0.0.1:9200/shakespeare/_bulk?pretty' --data-binary @/home/nyalazone/Documents/test1/shakespeare_7.0.json
+
+==Count=====
+curl -X GET "localhost:9200/movies/_count?pretty"
+
+====Curl syntex:
+curl -H 'Content-Type: application/json' <URL> -d '<BODY'>
+
+
+curl -H 'Content-Type: application/json' -XPOST '127.0.0.1:9200/shakespeare/_bulk?pretty
+
+=============Create mapping for one field=====
+curl -H 'Content-Type: application/json' -XPUT 127.0.0.1:9200/movies -d '
+{
+"mappings": {
+"properties" : {
+"year" : {"type":"date"}
+}
+}
+}'
+=========Download movie_json file========
+sudo wget http://media.sundog-soft.com/es7/movies.json -P /home/nyalazone/Documents/test1/
+=========Load this json data to elastic using bulk command============
+curl -H 'Content-Type: application/json' -XPOST '127.0.0.1:9200/_bulk?pretty' --data-binary @/home/nyalazone/Documents/test1/movies.json
+
+
+===========Match query========
+
+curl -H 'Content-Type: application/json' -XGET 127.0.0.1:9200/movies/_search?pretty -d'
+{
+"query":{
+"match":{
+"title":"Star Treck"
+}
+}
+}'
+
+
+
+curl -H 'Content-Type: application/json' -XGET 127.0.0.1:9200/movies/_search?pretty -d'
+{
+"query":{
+"match_phrase":{
+"genre":"sci"
+}
+}
+}'
+
+===============delete index=====
+curl -H 'Content-Type: application/json' -XDELETE 127.0.0.1:9200/movies
+
+===========Creating Mapping
+curl -H 'Content-Type: application/json' -XPUT 127.0.0.1:9200/movies -d'
+{
+"mappings":{
+"properties":{
+"id":{"type":"integer"},
+"year":{"type":"date"},
+"genre":{"type":"keyword"},
+"title":{"type":"text","analyzer":"english"}
+}
+}
+}
+}'
+
+==========Mapping=======
+curl -H 'Content-Type: application/json' -XGET 127.0.0.1:9200/movies/_mapping?pretty=true
+=======write into file==========
+curl -H 'Content-Type: application/json' -XGET 127.0.0.1:9200/movies/_mapping?pretty=true >> /home/nyalazone/Documents/test1/p1.json
+
+===========Clustter state===========
+curl -H 'Content-Type: application/json' -XGET 127.0.0.1:9200/movies/_cluster/state?pretty=true
+=======write into file==========
+curl -H 'Content-Type: application/json' -XGET 127.0.0.1:9200/movies/_cluster/state?pretty=true >> /home/nyalazone/Documents/test1/cluster.json
+
+=======Search Query===
+curl -H 'Content-Type: application/json' -XGET 127.0.0.1:9200/movies/_cluster/state?pretty=true >> /home/nyalazone/Documents/test1/cluster.json
+
+
+========Make anylizer======
+curl -H 'Content-Type: application/json' -XPUT '127.0.0.1:9200/movies?pretty' -d'
+{
+"settings":{
+"analysis": {
+"filter":{
+"	":{
+"type":"edge_ngram",
+"min_gram":1,
+"max_gram":20
+}},
+"analyzer":{
+"autocomplete":{
+"type":"custom",
+"tokenizer":"standard",
+"filter":[
+"lowercase",
+"autocomplete_filter"
+]
+}}}}}'
+
+========Test analyser with elastic=========
+curl -H 'Content-Type: application/json' -XGET 127.0.0.1:9200/movies/_analyze?pretty -d'
+{
+"analyzer":"autocomplete",
+"text":"Sta"
+}'
+
+===========Now mapp the analyzer to tile filed===
+curl -H 'Content-Type: application/json' -XPUT '127.0.0.1:9200/movies/_mapping?pretty' -d'
+{
+"properties":{
+"title":{
+"type":"text",
+"analyzer":"autocomplete"
+}
+}
+}'
+
+=========Now reindex data to test N-gram=======
+curl -H 'Content-Type: application/json' -XPOST '127.0.0.1:9200/_bulk?pretty' --data-binary @/home/nyalazone/Desktop/ElasticSearch/ElasticSearchv/data/movies.json
+
+
+
+
+
